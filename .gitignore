@@ -124,3 +124,7 @@ oura_flowsheet_sample*.xlsx
 
 # Local configuration
 *.local
+
+
+# For Yifei Test
+test/
