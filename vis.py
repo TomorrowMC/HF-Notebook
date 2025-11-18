@@ -187,25 +187,118 @@ def visualize_daily_heart_rate(data, start_date=None, end_date = None):
         fig.update_xaxes(range=[pd.to_datetime(start_date).date(), pd.to_datetime(end_date).date()])
     return fig
 
-def visualize_spo2(data):
+def visualize_spo2(data, start_date=None, end_date=None):
+    """
+    Visualize daily SpO2 (oxygen saturation) data.
+
+    Parameters:
+    data (pd.DataFrame): DataFrame containing SpO2 data with columns:
+                         'day' and 'spo2_percentage.average' (or 'average_spo2')
+    start_date (str, optional): Start date for x-axis range
+    end_date (str, optional): End date for x-axis range
+    """
+    # Handle different column naming conventions
+    spo2_col = None
+    if 'spo2_percentage.average' in data.columns:
+        spo2_col = 'spo2_percentage.average'
+    elif 'average_spo2' in data.columns:
+        spo2_col = 'average_spo2'
+    elif 'spo2_percentage' in data.columns:
+        spo2_col = 'spo2_percentage'
+    else:
+        raise ValueError("No SpO2 column found in data. Expected 'spo2_percentage.average', 'average_spo2', or 'spo2_percentage'")
+
     # Group and average the data by day
-    df = data[["day", "spo2_percentage"]].groupby('day').mean().reset_index()
+    df = data[["day", spo2_col]].groupby('day').mean().reset_index()
     fig = go.Figure()
 
     fig.add_trace(go.Scatter(
         x=df["day"],
-        y=df["spo2_percentage"],
-        name='Spo2',
+        y=df[spo2_col],
+        name='SpO2',
         mode='lines+markers',
-        line=dict(color='lightblue')
     ))
 
     fig.update_layout(
-        title='Average Spo2 percentage',
+        title='Daily Average SpO2 (Oxygen Saturation)',
         xaxis_title='Day',
-        yaxis_title='Percentage',
-        legend_title='Metric'
+        yaxis_title='SpO2 (%)',
+        legend_title='Metric',
+        showlegend=True
     )
+
+    # Set the x-axis range if start_date and end_date are provided
+    if start_date and end_date:
+        fig.update_xaxes(range=[pd.to_datetime(start_date).date(), pd.to_datetime(end_date).date()])
+
+    return fig
+
+
+def visualize_sleep_stages_stacked(data, start_date=None, end_date=None):
+    """
+    Visualize sleep stages (Deep, REM, Light) as a stacked bar chart.
+
+    Parameters:
+    data (pd.DataFrame): DataFrame containing sleep data with columns:
+                         'day', 'deep_sleep_duration', 'rem_sleep_duration', 'light_sleep_duration'
+                         (durations in seconds)
+    start_date (str, optional): Start date for x-axis range
+    end_date (str, optional): End date for x-axis range
+    """
+    # Check for required columns
+    required_cols = ['day', 'deep_sleep_duration', 'rem_sleep_duration', 'light_sleep_duration']
+    missing_cols = [col for col in required_cols if col not in data.columns]
+    if missing_cols:
+        raise ValueError(f"Missing required columns: {missing_cols}")
+
+    # Group by day and sum durations (in case of multiple sleep periods per day)
+    df = data[required_cols].groupby('day').sum().reset_index()
+
+    # Convert from seconds to hours
+    df['deep_hours'] = df['deep_sleep_duration'] / 3600
+    df['rem_hours'] = df['rem_sleep_duration'] / 3600
+    df['light_hours'] = df['light_sleep_duration'] / 3600
+
+    fig = go.Figure()
+
+    # Add stacked bars - Deep Sleep at bottom, then REM, then Light on top
+    fig.add_trace(go.Bar(
+        x=df['day'],
+        y=df['deep_hours'],
+        name='Deep Sleep',
+        marker_color='#1E3A5F',  # Dark blue
+        hovertemplate='Deep Sleep: %{y:.2f} hours<extra></extra>'
+    ))
+
+    fig.add_trace(go.Bar(
+        x=df['day'],
+        y=df['rem_hours'],
+        name='REM Sleep',
+        marker_color='#FF6B6B',  # Coral/orange-red
+        hovertemplate='REM Sleep: %{y:.2f} hours<extra></extra>'
+    ))
+
+    fig.add_trace(go.Bar(
+        x=df['day'],
+        y=df['light_hours'],
+        name='Light Sleep',
+        marker_color='#4ECDC4',  # Teal/light blue
+        hovertemplate='Light Sleep: %{y:.2f} hours<extra></extra>'
+    ))
+
+    fig.update_layout(
+        barmode='stack',
+        title='Daily Sleep Stages (Deep / REM / Light)',
+        xaxis_title='Day',
+        yaxis_title='Sleep Duration (hours)',
+        legend_title='Sleep Stage',
+        showlegend=True,
+        hovermode='x unified'
+    )
+
+    # Set the x-axis range if start_date and end_date are provided
+    if start_date and end_date:
+        fig.update_xaxes(range=[pd.to_datetime(start_date).date(), pd.to_datetime(end_date).date()])
 
     return fig
 
