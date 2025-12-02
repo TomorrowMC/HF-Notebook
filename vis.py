@@ -4,8 +4,8 @@ from datetime import datetime
 import plotly.express as px
 
 def visualize_readiness_scores(data):
-    # Create a line chart for readiness scores with data points
-    fig = px.line(data, x='day', y='score', title='Readiness Score Over Time', markers=True)
+    # Scatter chart for readiness scores showing only points
+    fig = px.scatter(data, x='day', y='score', title='Readiness Score Over Time')
 
     fig.update_layout(
         xaxis_title='Day',
@@ -39,8 +39,8 @@ def visualize_activity_log(data, start_date=None, end_date=None):
     return fig
 
 def visualize_sleep_scores(data):
-    # Create a line chart for sleep scores
-    fig = px.line(data, x='day', y='score', title='Sleep Score Over Time', markers=True)
+    # Scatter chart for sleep scores (points only)
+    fig = px.scatter(data, x='day', y='score', title='Sleep Score Over Time')
 
     fig.update_layout(
         xaxis_title='Day',
@@ -60,7 +60,7 @@ def visualize_respiratory(data, start_date=None, end_date=None):
         x=df["day"],
         y=df["average_breath"],
         name='Respiratory Rate',
-        mode='lines+markers',
+        mode='markers',
         # line=dict(color='lightblue')
     ))
 
@@ -216,7 +216,7 @@ def visualize_spo2(data, start_date=None, end_date=None):
         x=df["day"],
         y=df[spo2_col],
         name='SpO2',
-        mode='lines+markers',
+        mode='markers',
     ))
 
     fig.update_layout(
@@ -311,7 +311,7 @@ def visualize_temperature(data, start_date=None, end_date=None):
         x=df["day"],
         y=df["temperature_deviation"],
         name='Temperature Deviation',
-        mode='lines+markers',
+        mode='markers',
         # line=dict(color='lightblue')
     ))
 
@@ -338,7 +338,7 @@ def visualize_daily_hrv(df,start_date=None, end_date=None):
         x=data["day"],
         y=data["average_hrv"],
         name='Average HRV During Sleep',
-        mode='lines+markers',
+        mode='markers',
         # line=dict(color='green')
     ))
 
@@ -365,7 +365,7 @@ def visualize_daily_sleep_time(df, start_date=None, end_date=None):
         x=data["day"],
         y=data["total_sleep_duration"]/3600,
         name='Daily Total Sleep Duration',
-        mode='lines+markers',
+        mode='markers',
         # line=dict(color='green')
     ))
 
@@ -394,7 +394,7 @@ def visualize_daily_lowest_hr(df, start_date=None, end_date=None):
         x=data["day"],
         y=data["lowest_heart_rate"],
         name='Daily Lowest Heart Rate',
-        mode='lines+markers',
+        mode='markers',
         # line=dict(color='green')
     ))
 
@@ -421,7 +421,7 @@ def visualize_daily_steps(df,start_date=None, end_date=None):
         x=data["day"],
         y=data["steps"],
         name='Daily Total Steps Count',
-        mode='lines+markers',
+        mode='markers',
         # line=dict(color='green')
     ))
 
@@ -463,8 +463,7 @@ def visualize_heart_rate(df):
         x=data["day"],
         y=data["average_hrv"],
         name='Average HRV',
-        mode='lines+markers',
-        line=dict(color='green')
+        mode='markers'
     ))
 
     fig.update_layout(
@@ -546,14 +545,14 @@ def visualize_sleep_breakdowns(data):
         yaxis2=dict(title='Sleep Efficiency', overlaying='y', side='right', range=[0, 100])
     )
 
-    # Add line trace for sleep efficiency
+    # Add scatter trace for sleep efficiency (points only)
     fig.add_trace(go.Scatter(
         x=data["day"],
         y=data["efficiency"],
         name='Sleep Efficiency',
         yaxis='y2',
-        mode='lines+markers',
-        line=dict(color='green')
+        mode='markers',
+        marker=dict(color='green')
     ))
 
     fig.update_layout(
@@ -575,11 +574,10 @@ def visualize_temporal_flowsheet(df):
     # Group by "RECORDED_DAY" and "fdgDisplayName", and aggregate "MEAS_VALUE"
     df_grouped = df.groupby(["RECORDED_DAY", "fdgDisplayName"])["MEAS_VALUE"].mean().reset_index()
     
-    # Create the line chart
-    fig = px.line(df_grouped, x="RECORDED_DAY", y="MEAS_VALUE", color="fdgDisplayName",
-                  title="Temporal Categorical Value Changes",
-                  markers=True,
-                  labels={"RECORDED_DAY": "Recorded Day", "MEAS_VALUE": "Mean Measure Value", "fdgDisplayName": "Category"})
+    # Create the scatter chart (points only)
+    fig = px.scatter(df_grouped, x="RECORDED_DAY", y="MEAS_VALUE", color="fdgDisplayName",
+                     title="Temporal Categorical Value Changes",
+                     labels={"RECORDED_DAY": "Recorded Day", "MEAS_VALUE": "Mean Measure Value", "fdgDisplayName": "Category"})
     
     # Update layout for better visualization
     fig.update_layout(xaxis_title='Day',
@@ -602,14 +600,13 @@ def visualize_individual_temporal_flowsheet(df, start_date=None, end_date=None):
     # Get the unique categories
     categories = df_grouped["fdgDisplayName"].unique()
 
-    # Generate a line chart for each category
+    # Generate a scatter chart for each category
     for category in categories:
         df_category = df_grouped[df_grouped["fdgDisplayName"] == category]
         
-        fig = px.line(df_category, x="RECORDED_DAY", y="MEAS_VALUE",
-                      title=f"Temporal Changes for {category}",
-                      markers=True,
-                      labels={"RECORDED_DAY": "Recorded Day", "MEAS_VALUE": "Mean Measure Value"})
+        fig = px.scatter(df_category, x="RECORDED_DAY", y="MEAS_VALUE",
+                         title=f"Temporal Changes for {category}",
+                         labels={"RECORDED_DAY": "Recorded Day", "MEAS_VALUE": "Mean Measure Value"})
         
         # Update layout for better visualization
         fig.update_layout(xaxis_title='Day',
@@ -779,7 +776,7 @@ def visualize_daily_lowest_hr_v2(df, start_date=None, end_date=None):
 
 def visualize_sedentary_time(data, start_date=None, end_date=None):
     """
-    Visualize sedentary time data as a line chart.
+    Visualize sedentary time data as a scatter plot.
     
     Parameters:
     data (pd.DataFrame): DataFrame containing activity time information with columns:
@@ -793,14 +790,14 @@ def visualize_sedentary_time(data, start_date=None, end_date=None):
     # Convert sedentary time from seconds to hours
     data_copy['sedentary_time'] = data_copy['sedentary_time'] / 3600  # 3600 seconds in an hour
 
-    # Create a line chart
+    # Create a scatter chart
     fig = go.Figure()
 
     # Add trace for sedentary time
     fig.add_trace(go.Scatter(
         x=data_copy['day'],
         y=data_copy['sedentary_time'],
-        mode='lines+markers',
+        mode='markers',
         name='Sedentary Time',
         # line=dict(color='rgb(128, 0, 128)', width=2),
         marker=dict(size=6)
